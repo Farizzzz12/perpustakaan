@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}PerpusKu — Perpustakaan Digital Sekolah{% endblock %}</title>
+    
+    <!-- Google Fonts: Inter & Poppins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome 6 Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            DEFAULT: '#2563EB',
+                            50: '#EFF6FF',
+                            100: '#DBEAFE',
+                            200: '#BFDBFE',
+                            500: '#3B82F6',
+                            600: '#2563EB',
+                            700: '#1D4ED8',
+                            800: '#1E40AF'
+                        },
+                        accent: {
+                            DEFAULT: '#F59E0B',
+                            hover: '#D97706',
+                            light: '#FEF3C7'
+                        },
+                        navy: {
+                            DEFAULT: '#0F172A',
+                            800: '#1E293B',
+                            900: '#0F172A'
+                        },
+                        softblue: '#F4F7FC',
+                        available: '#10B981',
+                        overdue: '#EF4444'
+                    },
+                    fontFamily: {
+                        heading: ['Poppins', 'sans-serif'],
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif']
+                    },
+                    boxShadow: {
+                        'soft': '0 4px 20px -2px rgba(37, 99, 235, 0.08), 0 2px 6px -1px rgba(0, 0, 0, 0.04)',
+                        'glow': '0 0 25px rgba(37, 99, 235, 0.25)',
+                        'glow-accent': '0 0 25px rgba(245, 158, 11, 0.3)',
+                        'card-hover': '0 20px 30px -10px rgba(15, 23, 42, 0.12), 0 8px 16px -6px rgba(15, 23, 42, 0.08)'
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        /* Modern Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Glassmorphism Classes */
+        .glass {
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+        }
+        .glass-dark {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+        }
+
+        /* Keyframe Animations */
+        @keyframes floatSlow {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+        }
+        @keyframes pulseSoft {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.85; transform: scale(1.03); }
+        }
+        @keyframes slideUpFade {
+            from {
+                opacity: 0;
+                transform: translateY(16px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .animate-float {
+            animation: floatSlow 4s ease-in-out infinite;
+        }
+        .animate-slide-up {
+            animation: slideUpFade 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+
+        /* Card and Button Micro-interactions */
+        .interactive-card {
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .interactive-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 30px -10px rgba(15, 23, 42, 0.12), 0 8px 16px -6px rgba(15, 23, 42, 0.08);
+        }
+
+        /* Gradient mesh accent */
+        .gradient-mesh {
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(37, 99, 235, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(245, 158, 11, 0.12) 0px, transparent 50%),
+                radial-gradient(at 50% 50%, rgba(99, 102, 241, 0.08) 0px, transparent 50%);
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-softblue text-slate-800 font-sans min-h-screen flex flex-col selection:bg-primary-100 selection:text-primary-800 antialiased">
+
+    <!-- Bilah Navigasi Atas (Glassmorphism & Interactive) -->
+    <header class="sticky top-0 z-50 glass border-b border-slate-200/80 transition-all duration-300 shadow-sm" id="main-nav">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 py-2.5 flex items-center justify-between">
+            
+            <!-- Brand Logo -->
+            <a href="{{ url_for('katalog') }}" class="group flex items-center gap-3">
+                <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-primary-700 via-primary to-blue-500 flex items-center justify-center text-white shadow-md shadow-primary/25 group-hover:scale-105 group-hover:rotate-2 transition-transform duration-300">
+                    <i class="fa-solid fa-book-open-reader text-lg"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="font-heading font-extrabold text-xl text-navy tracking-tight group-hover:text-primary transition-colors">
+                            Perpus<span class="text-primary group-hover:text-blue-700">Ku</span>
+                        </span>
+                        <span class="px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-md bg-blue-100 text-primary">v2.0</span>
+                    </div>
+                    <span class="block text-[11px] font-medium text-slate-500">Perpustakaan Digital Sekolah</span>
+                </div>
+            </a>
+
+            <!-- Desktop Navigation Links -->
+            <div class="hidden md:flex items-center gap-2">
+                <a href="{{ url_for('katalog') }}" 
+                   class="px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center gap-2
+                   {% if request.endpoint == 'katalog' %}bg-primary text-white shadow-sm shadow-primary/30{% else %}text-slate-600 hover:text-primary hover:bg-white{% endif %}">
+                    <i class="fa-solid fa-compass"></i>
+                    Katalog Buku
+                </a>
+
+                {% if session.get('user_id') %}
+                    {% if session.get('peran') == 'pustakawan' %}
+                        <a href="{{ url_for('dashboard_pustakawan') }}" 
+                           class="px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center gap-2
+                           {% if request.endpoint == 'dashboard_pustakawan' %}bg-amber-500 text-white shadow-sm shadow-amber-500/30{% else %}text-amber-700 bg-amber-50/80 hover:bg-amber-100 border border-amber-200/70{% endif %}">
+                            <i class="fa-solid fa-chart-pie"></i>
+                            Panel Pustakawan
+                        </a>
+                    {% else %}
+                        <a href="{{ url_for('pinjaman_saya') }}" 
+                           class="px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center gap-2
+                           {% if request.endpoint == 'pinjaman_saya' %}bg-primary text-white shadow-sm shadow-primary/30{% else %}text-slate-600 hover:text-primary hover:bg-white{% endif %}">
+                            <i class="fa-solid fa-book-bookmark"></i>
+                            Pinjaman Saya
+                        </a>
+                    {% endif %}
+
+                    <!-- User Profile Chip -->
+                    <div class="flex items-center gap-3 pl-3 ml-2 border-l border-slate-200">
+                        <div class="flex items-center gap-2.5 bg-white border border-slate-200/80 rounded-xl px-3 py-1.5 shadow-xs">
+                            <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center text-primary font-bold text-xs">
+                                <i class="fa-solid fa-user"></i>
+                            </div>
+                            <div class="text-left">
+                                <p class="text-xs font-bold text-navy leading-tight">{{ session.get('nama') }}</p>
+                                <div class="flex items-center gap-1.5 mt-0.5">
+                                    <span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                    <span class="text-[10px] font-semibold text-slate-500 uppercase tracking-wide">
+                                        {{ session.get('peran') }} · {{ session.get('nomor_induk') }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Logout Button -->
+                        <a href="{{ url_for('logout') }}" 
+                           title="Keluar dari akun"
+                           class="w-9 h-9 rounded-xl flex items-center justify-center bg-red-50 text-red-600 hover:bg-red-500 hover:text-white border border-red-100 transition-all duration-200 group">
+                            <i class="fa-solid fa-arrow-right-from-bracket group-hover:scale-110 transition-transform"></i>
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="flex items-center gap-2.5">
+                        <a href="{{ url_for('login') }}" 
+                           class="px-4 py-2 rounded-xl text-sm font-semibold text-slate-700 hover:text-primary hover:bg-white transition-all">
+                            Masuk
+                        </a>
+                        <a href="{{ url_for('register') }}" 
+                           class="px-4 py-2 rounded-xl bg-gradient-to-r from-primary to-blue-600 hover:from-primary-700 hover:to-blue-700 text-white text-sm font-semibold shadow-sm shadow-primary/30 hover:shadow-md transition-all">
+                            Daftar Siswa
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Mobile Hamburger Button -->
+            <button type="button" id="mobile-menu-btn" 
+                    class="md:hidden w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-700 hover:text-primary focus:outline-none transition">
+                <i class="fa-solid fa-bars text-lg" id="menu-icon"></i>
+            </button>
+        </div>
+
+        <!-- Mobile Drawer Menu -->
+        <div id="mobile-menu" class="hidden md:hidden px-4 pt-2 pb-5 border-t border-slate-100 bg-white/95 backdrop-blur-md animate-slide-up">
+            <div class="flex flex-col gap-2 mt-2">
+                <a href="{{ url_for('katalog') }}" 
+                   class="px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2.5 {% if request.endpoint == 'katalog' %}bg-primary text-white{% else %}text-slate-700 hover:bg-softblue{% endif %}">
+                    <i class="fa-solid fa-compass"></i>
+                    Katalog Buku
+                </a>
+
+                {% if session.get('user_id') %}
+                    {% if session.get('peran') == 'pustakawan' %}
+                        <a href="{{ url_for('dashboard_pustakawan') }}" 
+                           class="px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2.5 text-amber-700 bg-amber-50">
+                            <i class="fa-solid fa-chart-pie"></i>
+                            Panel Pustakawan
+                        </a>
+                    {% else %}
+                        <a href="{{ url_for('pinjaman_saya') }}" 
+                           class="px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2.5 {% if request.endpoint == 'pinjaman_saya' %}bg-primary text-white{% else %}text-slate-700 hover:bg-softblue{% endif %}">
+                            <i class="fa-solid fa-book-bookmark"></i>
+                            Pinjaman Saya
+                        </a>
+                    {% endif %}
+
+                    <div class="pt-3 mt-2 border-t border-slate-100 flex items-center justify-between px-2">
+                        <div>
+                            <p class="text-xs font-bold text-navy">{{ session.get('nama') }}</p>
+                            <p class="text-[11px] text-slate-500 uppercase">{{ session.get('peran') }} ({{ session.get('nomor_induk') }})</p>
+                        </div>
+                        <a href="{{ url_for('logout') }}" class="px-3 py-1.5 rounded-lg bg-red-50 text-red-600 text-xs font-semibold">
+                            Keluar
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100">
+                        <a href="{{ url_for('login') }}" class="py-2.5 text-center text-sm font-semibold rounded-xl bg-slate-100 text-slate-700">Masuk</a>
+                        <a href="{{ url_for('register') }}" class="py-2.5 text-center text-sm font-semibold rounded-xl bg-primary text-white">Daftar</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <!-- Notifikasi Flash Message dengan Animasi & Tombol Close -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full mt-4 z-40">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash-alert mb-3 p-4 rounded-2xl border text-sm font-medium flex items-center justify-between shadow-sm animate-slide-up transition-all duration-300
+                        {% if category == 'success' %} bg-emerald-50 border-emerald-200 text-emerald-900
+                        {% elif category == 'danger' %} bg-rose-50 border-rose-200 text-rose-900
+                        {% elif category == 'warning' %} bg-amber-50 border-amber-200 text-amber-900
+                        {% else %} bg-blue-50 border-blue-200 text-blue-900 {% endif %}">
+                        <div class="flex items-center gap-3">
+                            <span class="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0
+                                {% if category == 'success' %} bg-emerald-100 text-emerald-600
+                                {% elif category == 'danger' %} bg-rose-100 text-rose-600
+                                {% elif category == 'warning' %} bg-amber-100 text-amber-600
+                                {% else %} bg-blue-100 text-blue-600 {% endif %}">
+                                {% if category == 'success' %}
+                                    <i class="fa-solid fa-circle-check"></i>
+                                {% elif category == 'danger' %}
+                                    <i class="fa-solid fa-triangle-exclamation"></i>
+                                {% elif category == 'warning' %}
+                                    <i class="fa-solid fa-circle-exclamation"></i>
+                                {% else %}
+                                    <i class="fa-solid fa-circle-info"></i>
+                                {% endif %}
+                            </span>
+                            <div>{{ message }}</div>
+                        </div>
+                        <button type="button" onclick="this.closest('.flash-alert').remove()" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 transition">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- Konten Utama Halaman -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Tombol Scroll To Top -->
+    <button id="btn-scroll-top" 
+            onclick="window.scrollTo({top: 0, behavior: 'smooth'})"
+            title="Kembali ke atas"
+            class="fixed bottom-6 right-6 w-12 h-12 rounded-2xl bg-primary text-white shadow-lg shadow-primary/30 flex items-center justify-center text-base opacity-0 translate-y-6 pointer-events-none transition-all duration-300 hover:bg-blue-700 hover:scale-110 z-50">
+        <i class="fa-solid fa-arrow-up"></i>
+    </button>
+
+    <!-- Footer Modern -->
+    <footer class="bg-white border-t border-slate-200 mt-16 pt-12 pb-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+                <!-- Brand Info -->
+                <div class="md:col-span-2">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-primary to-blue-500 flex items-center justify-center text-white shadow-sm">
+                            <i class="fa-solid fa-book-open-reader"></i>
+                        </div>
+                        <span class="font-heading font-extrabold text-xl text-navy tracking-tight">Perpus<span class="text-primary">Ku</span></span>
+                    </div>
+                    <p class="text-sm text-slate-500 leading-relaxed max-w-md">
+                        Sistem Informasi Perpustakaan Sekolah Digital yang menghadirkan pengalaman peminjaman buku yang cepat, transparan, dan terintegrasi dengan pemindai barcode eksemplar.
+                    </p>
+                    <div class="flex items-center gap-2 mt-4 text-xs font-semibold text-emerald-600">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        Sistem Server Aktif & Real-time
+                    </div>
+                </div>
+
+                <!-- Navigasi Cepat -->
+                <div>
+                    <h4 class="font-heading font-bold text-sm text-navy mb-3">Akses Cepat</h4>
+                    <ul class="space-y-2 text-xs font-medium text-slate-600">
+                        <li><a href="{{ url_for('katalog') }}" class="hover:text-primary transition flex items-center gap-1.5"><i class="fa-solid fa-angle-right text-[10px] text-primary"></i> Katalog Buku</a></li>
+                        {% if session.get('user_id') %}
+                            {% if session.get('peran') == 'pustakawan' %}
+                                <li><a href="{{ url_for('dashboard_pustakawan') }}" class="hover:text-primary transition flex items-center gap-1.5"><i class="fa-solid fa-angle-right text-[10px] text-primary"></i> Dashboard Pustakawan</a></li>
+                            {% else %}
+                                <li><a href="{{ url_for('pinjaman_saya') }}" class="hover:text-primary transition flex items-center gap-1.5"><i class="fa-solid fa-angle-right text-[10px] text-primary"></i> Pinjaman Saya</a></li>
+                            {% endif %}
+                        {% else %}
+                            <li><a href="{{ url_for('login') }}" class="hover:text-primary transition flex items-center gap-1.5"><i class="fa-solid fa-angle-right text-[10px] text-primary"></i> Masuk Akun</a></li>
+                            <li><a href="{{ url_for('register') }}" class="hover:text-primary transition flex items-center gap-1.5"><i class="fa-solid fa-angle-right text-[10px] text-primary"></i> Registrasi Siswa</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+
+                <!-- Info Kontak Perpustakaan -->
+                <div>
+                    <h4 class="font-heading font-bold text-sm text-navy mb-3">Jam Operasional</h4>
+                    <p class="text-xs text-slate-500 leading-relaxed">
+                        Senin – Jumat: 07.30 – 16.00 WIB<br>
+                        Sabtu: 08.00 – 13.00 WIB<br>
+                        Minggu & Hari Libur: Tutup
+                    </p>
+                    <div class="mt-4 pt-3 border-t border-slate-100 text-xs text-slate-400">
+                        Lokasi: Gedung Perpustakaan Lt. 2
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-t border-slate-100 pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 gap-4">
+                <p>&copy; 2026 <strong>PerpusKu</strong> — Aplikasi Perpustakaan Digital Sekolah. All rights reserved.</p>
+                <div class="flex items-center gap-4">
+                    <span>Modern UI & UX Powered</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Interactive Scripts -->
+    <script>
+        // Toggle Mobile Menu
+        const mobileBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const menuIcon = document.getElementById('menu-icon');
+        
+        if (mobileBtn && mobileMenu) {
+            mobileBtn.addEventListener('click', () => {
+                const isHidden = mobileMenu.classList.contains('hidden');
+                if (isHidden) {
+                    mobileMenu.classList.remove('hidden');
+                    menuIcon.classList.replace('fa-bars', 'fa-xmark');
+                } else {
+                    mobileMenu.classList.add('hidden');
+                    menuIcon.classList.replace('fa-xmark', 'fa-bars');
+                }
+            });
+        }
+
+        // Scroll to Top Button Visibility
+        const btnScrollTop = document.getElementById('btn-scroll-top');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 300) {
+                btnScrollTop.classList.remove('opacity-0', 'translate-y-6', 'pointer-events-none');
+                btnScrollTop.classList.add('opacity-100', 'translate-y-0');
+            } else {
+                btnScrollTop.classList.add('opacity-0', 'translate-y-6', 'pointer-events-none');
+                btnScrollTop.classList.remove('opacity-100', 'translate-y-0');
+            }
+        });
+
+        // Auto dismiss flash alerts after 6 seconds
+        setTimeout(() => {
+            document.querySelectorAll('.flash-alert').forEach(el => {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(-10px)';
+                setTimeout(() => el.remove(), 400);
+            });
+        }, 6000);
+    </script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

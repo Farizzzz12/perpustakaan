@@ -1,0 +1,261 @@
+{% extends "base.html" %}
+{% block title %}Pinjaman & Reservasi Saya — PerpusKu{% endblock %}
+
+{% block content %}
+<!-- ============================================== -->
+<!-- BANNER KUOTA & STATUS ANGGOTA                  -->
+<!-- ============================================== -->
+{% set kuota_maks = aturan.kuota_guru if session.get('peran') == 'guru' else aturan.kuota_siswa %}
+{% set kuota_terpakai = pinjaman_aktif|length %}
+{% set kuota_persen = (kuota_terpakai / kuota_maks * 100)|round|int %}
+
+<div class="relative overflow-hidden bg-gradient-to-r from-white via-blue-50/40 to-white rounded-3xl border border-blue-100 p-6 sm:p-8 shadow-soft mb-8">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+        <div>
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 text-primary text-xs font-bold mb-2">
+                <i class="fa-solid fa-user-graduate"></i>
+                Portal Anggota Perpustakaan
+            </div>
+            <h1 class="font-heading text-2xl sm:text-3xl font-extrabold text-navy tracking-tight">
+                Pinjaman & Antrean Reservasi
+            </h1>
+            <p class="text-xs sm:text-sm text-slate-500 mt-1 max-w-xl leading-relaxed">
+                Pantau tanggal jatuh tempo buku Anda. Keterlambatan dikenakan denda otomatis sebesar <strong class="text-navy">Rp{{ "{:,}".format(aturan.tarif_denda) }}/hari per buku</strong>.
+            </p>
+        </div>
+
+        <!-- Quota Progress Widget -->
+        <div class="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-5 shadow-sm min-w-[260px]">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-bold text-slate-500">Kuota Pinjaman Buku</span>
+                <span class="font-heading font-extrabold text-sm text-primary">{{ kuota_terpakai }} / {{ kuota_maks }} Buku</span>
+            </div>
+            
+            <!-- Progress Bar -->
+            <div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden mb-2">
+                <div class="h-full rounded-full transition-all duration-700 {% if kuota_terpakai >= kuota_maks %}bg-rose-500{% elif kuota_terpakai > 0 %}bg-primary{% else %}bg-slate-300{% endif %}"
+                     style="width: {{ kuota_persen }}%;"></div>
+            </div>
+
+            <div class="flex items-center justify-between text-[11px] text-slate-400 font-medium">
+                <span>{{ kuota_maks - kuota_terpakai }} slot tersisa</span>
+                <span>Maks: {{ kuota_maks }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================== -->
+<!-- BAGIAN 1: BUKU YANG SEDANG AKTIF DIPINJAM      -->
+<!-- ============================================== -->
+<div class="flex items-center justify-between mb-4">
+    <div class="flex items-center gap-2">
+        <h2 class="font-heading text-lg font-bold text-navy">Sedang Dipinjam</h2>
+        <span class="px-2.5 py-0.5 rounded-full bg-blue-100 text-primary text-xs font-bold">{{ pinjaman_aktif|length }} Buku</span>
+    </div>
+</div>
+
+{% if pinjaman_aktif %}
+<div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-10">
+    {% for item in pinjaman_aktif %}
+    <div class="bg-white rounded-3xl border {% if item.sisa_hari < 0 %}border-rose-300 ring-2 ring-rose-100{% elif item.sisa_hari <= 2 %}border-amber-300 ring-2 ring-amber-100{% else %}border-slate-200/90{% endif %} p-5 shadow-soft interactive-card flex flex-col justify-between">
+        
+        <div class="flex gap-4">
+            <!-- Book Cover -->
+            <div class="relative w-24 h-36 rounded-2xl overflow-hidden bg-slate-100 flex-shrink-0 shadow-sm">
+                <img src="{{ item.sampul }}" alt="{{ item.judul }}" 
+                     onerror="this.src='https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&q=80'"
+                     class="w-full h-full object-cover">
+            </div>
+
+            <!-- Details -->
+            <div class="flex-grow flex flex-col justify-between">
+                <div>
+                    <div class="flex items-start justify-between gap-2">
+                        <h3 class="font-heading font-bold text-sm sm:text-base text-navy line-clamp-2 leading-snug">{{ item.judul }}</h3>
+                    </div>
+                    <p class="text-xs font-semibold text-primary mt-1 flex items-center gap-1">
+                        <i class="fa-solid fa-feather text-[10px]"></i>
+                        {{ item.penulis }}
+                    </p>
+                    <span class="inline-block mt-1 font-mono text-[10px] font-bold bg-slate-100 text-slate-600 px-2 py-0.5 rounded border border-slate-200">
+                        {{ item.kode_barcode }}
+                    </span>
+
+                    <!-- Status Countdown / Warning Tag -->
+                    <div class="mt-3">
+                        {% if item.sisa_hari > 2 %}
+                            <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-bold">
+                                <i class="fa-regular fa-clock text-emerald-600"></i>
+                                <span>Sisa {{ item.sisa_hari }} hari lagi (Tempo: {{ item.tgl_jatuh_tempo }})</span>
+                            </div>
+                        {% elif item.sisa_hari >= 0 %}
+                            <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 text-amber-800 border border-amber-300 text-xs font-bold animate-pulse">
+                                <i class="fa-solid fa-triangle-exclamation text-amber-600"></i>
+                                <span>Segera Kembalikan! Sisa {{ item.sisa_hari }} hari ({{ item.tgl_jatuh_tempo }})</span>
+                            </div>
+                        {% else %}
+                            <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-50 text-rose-800 border border-rose-300 text-xs font-bold">
+                                <span class="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
+                                <span>Terlambat {{ -item.sisa_hari }} hari! Denda berjalan: Rp{{ "{:,}".format(item.denda_berjalan) }}</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Perpanjangan Footer -->
+        <div class="mt-4 pt-3.5 border-t border-slate-100 flex items-center justify-between">
+            <span class="text-xs font-semibold text-slate-500 flex items-center gap-1.5">
+                <i class="fa-solid fa-arrows-rotate text-slate-400"></i>
+                Perpanjangan: <strong class="text-navy">{{ item.jumlah_perpanjangan }}/{{ aturan.maks_perpanjangan }} kali</strong>
+            </span>
+
+            {% if item.jumlah_perpanjangan < aturan.maks_perpanjangan and item.sisa_hari >= 0 %}
+                <form method="POST" action="{{ url_for('perpanjang_pinjaman', peminjaman_id=item.id) }}">
+                    <button type="submit" class="px-4 py-2 rounded-xl bg-primary hover:bg-blue-700 text-white text-xs font-bold shadow-sm shadow-primary/30 transition flex items-center gap-1.5 group">
+                        <i class="fa-solid fa-calendar-plus group-hover:scale-110 transition-transform"></i>
+                        <span>Perpanjang +7 Hari</span>
+                    </button>
+                </form>
+            {% else %}
+                <span class="text-xs font-medium text-slate-400 bg-slate-100 px-3 py-1.5 rounded-xl">
+                    <i class="fa-solid fa-lock text-[10px] mr-1"></i> Tidak dapat diperpanjang
+                </span>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="bg-white rounded-3xl border border-slate-200/90 p-8 text-center text-slate-400 shadow-soft mb-10">
+    <div class="w-16 h-16 rounded-2xl bg-blue-50 text-primary flex items-center justify-center text-2xl mx-auto mb-3">
+        <i class="fa-solid fa-book-open-reader"></i>
+    </div>
+    <h3 class="font-heading font-bold text-navy text-sm">Tidak Ada Buku yang Sedang Dipinjam</h3>
+    <p class="text-xs text-slate-500 mt-1">Anda memiliki kuota penuh. Temukan buku menarik di katalog dan pinjam di perpustakaan!</p>
+    <a href="{{ url_for('katalog') }}" class="inline-flex items-center gap-1.5 mt-4 px-4 py-2 rounded-xl bg-primary text-white text-xs font-bold">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <span>Jelajahi Katalog Buku</span>
+    </a>
+</div>
+{% endif %}
+
+<!-- ============================================== -->
+<!-- BAGIAN 2: DAFTAR ANTREAN RESERVASI BUKU        -->
+<!-- ============================================== -->
+<div class="flex items-center justify-between mb-4">
+    <div class="flex items-center gap-2">
+        <h2 class="font-heading text-lg font-bold text-navy">Antrean Reservasi Buku</h2>
+        <span class="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 text-xs font-bold">{{ reservasi_list|length }} Buku</span>
+    </div>
+</div>
+
+{% if reservasi_list %}
+<div class="bg-white rounded-3xl border border-slate-200/90 overflow-hidden shadow-soft mb-10">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-xs">
+            <thead class="bg-slate-50/80 border-b border-slate-200 text-slate-500 uppercase tracking-wider font-bold text-[11px]">
+                <tr>
+                    <th class="py-3.5 px-5">Judul Buku</th>
+                    <th class="py-3.5 px-5">Lokasi Rak</th>
+                    <th class="py-3.5 px-5">Waktu Reservasi</th>
+                    <th class="py-3.5 px-5">Status Antrean</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 font-medium">
+                {% for res in reservasi_list %}
+                <tr class="hover:bg-blue-50/40 transition-colors">
+                    <td class="py-4 px-5">
+                        <p class="font-bold text-navy">{{ res.judul }}</p>
+                        <p class="text-slate-400 text-[11px]">{{ res.penulis }}</p>
+                    </td>
+                    <td class="py-4 px-5">
+                        <span class="inline-flex items-center gap-1 bg-slate-100 px-2.5 py-1 rounded-lg font-bold text-slate-700">
+                            <i class="fa-solid fa-location-dot text-amber-500 text-[10px]"></i>
+                            {{ res.lokasi_rak }}
+                        </span>
+                    </td>
+                    <td class="py-4 px-5 text-slate-600 font-medium">{{ res.tgl_reservasi }}</td>
+                    <td class="py-4 px-5">
+                        {% if res.status == 'siap_diambil' %}
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-800 font-bold border border-emerald-300 shadow-xs animate-bounce">
+                                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                                Buku Siap Diambil di Perpustakaan!
+                            </span>
+                        {% else %}
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-800 font-bold">
+                                <i class="fa-solid fa-hourglass-start text-[10px]"></i>
+                                Dalam Antrean Menunggu Pengembalian
+                            </span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% else %}
+<div class="bg-white rounded-3xl border border-slate-200/90 p-6 text-center text-xs text-slate-400 shadow-soft mb-10">
+    <i class="fa-solid fa-bell-slash text-2xl text-slate-300 mb-2"></i>
+    <p>Belum ada buku yang Anda reservasi.</p>
+</div>
+{% endif %}
+
+<!-- ============================================== -->
+<!-- BAGIAN 3: RIWAYAT PEMINJAMAN TERDAHULU         -->
+<!-- ============================================== -->
+<div class="flex items-center justify-between mb-4">
+    <h2 class="font-heading text-lg font-bold text-navy">Riwayat Peminjaman Selesai</h2>
+    <span class="text-xs text-slate-400 font-medium">Buku yang telah dikembalikan</span>
+</div>
+
+<div class="bg-white rounded-3xl border border-slate-200/90 overflow-hidden shadow-soft">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-xs">
+            <thead class="bg-slate-50/80 border-b border-slate-200 text-slate-500 uppercase tracking-wider font-bold text-[11px]">
+                <tr>
+                    <th class="py-3.5 px-5">Koleksi Buku</th>
+                    <th class="py-3.5 px-5">Tgl Pinjam</th>
+                    <th class="py-3.5 px-5">Jatuh Tempo</th>
+                    <th class="py-3.5 px-5">Tgl Dikembalikan</th>
+                    <th class="py-3.5 px-5">Status Denda</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 font-medium">
+                {% for r in riwayat_pinjaman %}
+                <tr class="hover:bg-slate-50/80 transition-colors">
+                    <td class="py-4 px-5">
+                        <p class="font-bold text-navy">{{ r.judul }}</p>
+                        <p class="font-mono text-[10px] text-slate-400">{{ r.kode_barcode }}</p>
+                    </td>
+                    <td class="py-4 px-5 text-slate-600">{{ r.tgl_pinjam }}</td>
+                    <td class="py-4 px-5 text-slate-600">{{ r.tgl_jatuh_tempo }}</td>
+                    <td class="py-4 px-5 text-emerald-700 font-semibold">{{ r.tgl_kembali }}</td>
+                    <td class="py-4 px-5">
+                        {% if r.denda > 0 %}
+                            <span class="inline-flex items-center gap-1 font-bold {% if r.status_bayar_denda == 'lunas' %}text-emerald-700{% else %}text-rose-600{% endif %}">
+                                Rp{{ "{:,}".format(r.denda) }} 
+                                <span class="px-1.5 py-0.5 rounded text-[10px] uppercase {% if r.status_bayar_denda == 'lunas' %}bg-emerald-100 text-emerald-800{% else %}bg-rose-100 text-rose-800{% endif %}">
+                                    {{ r.status_bayar_denda|replace('_', ' ') }}
+                                </span>
+                            </span>
+                        {% else %}
+                            <span class="text-slate-400 font-semibold">Bebas Denda</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="py-10 text-center text-slate-400">
+                        <p class="font-medium">Belum ada riwayat peminjaman buku yang telah selesai.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

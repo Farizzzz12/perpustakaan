@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% block title %}Masuk Akun — PerpusKu{% endblock %}
+
+{% block content %}
+<div class="relative py-8 sm:py-12 flex items-center justify-center">
+    <!-- Ambient Backdrop Glows -->
+    <div class="absolute -top-12 -left-12 w-72 h-72 rounded-full bg-primary/15 blur-3xl pointer-events-none"></div>
+    <div class="absolute -bottom-12 -right-12 w-72 h-72 rounded-full bg-accent/20 blur-3xl pointer-events-none"></div>
+
+    <div class="w-full max-w-md bg-white rounded-3xl shadow-xl border border-slate-200/90 p-8 sm:p-10 relative z-10 animate-slide-up">
+        
+        <!-- Header & Logo Icon -->
+        <div class="text-center mb-8">
+            <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-primary to-blue-600 text-white flex items-center justify-center text-2xl mx-auto mb-4 shadow-lg shadow-primary/25 animate-float">
+                <i class="fa-solid fa-book-open-reader"></i>
+            </div>
+            <h1 class="font-heading text-2xl sm:text-3xl font-extrabold text-navy tracking-tight">Masuk ke PerpusKu</h1>
+            <p class="text-xs sm:text-sm text-slate-500 mt-1.5">Gunakan NIS, NIP, atau Email sekolah Anda</p>
+        </div>
+
+        <!-- Form Login -->
+        <form method="POST" action="{{ url_for('login') }}" class="space-y-4">
+            <!-- Identitas -->
+            <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5 flex items-center gap-1.5">
+                    <i class="fa-solid fa-id-card text-primary text-xs"></i>
+                    <span>NIS / NIP / Email</span>
+                </label>
+                <div class="relative">
+                    <input type="text" name="identitas" id="input-identitas" required 
+                           placeholder="Contoh: NIS101 atau NIP001"
+                           class="w-full pl-4 pr-10 py-3 rounded-xl border border-slate-200 focus:border-primary focus:ring-4 focus:ring-blue-100 outline-none text-sm font-semibold transition">
+                    <i class="fa-regular fa-user absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none"></i>
+                </div>
+            </div>
+
+            <!-- Password with Show/Hide Toggle -->
+            <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5 flex items-center justify-between">
+                    <span class="flex items-center gap-1.5">
+                        <i class="fa-solid fa-lock text-primary text-xs"></i>
+                        <span>Kata Sandi</span>
+                    </span>
+                </label>
+                <div class="relative">
+                    <input type="password" name="password" id="input-password" required 
+                           placeholder="Masukkan kata sandi akun"
+                           class="w-full pl-4 pr-11 py-3 rounded-xl border border-slate-200 focus:border-primary focus:ring-4 focus:ring-blue-100 outline-none text-sm transition">
+                    <button type="button" onclick="togglePasswordVisibility()" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition">
+                        <i class="fa-regular fa-eye" id="eye-icon"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="w-full mt-2 py-3.5 rounded-xl bg-gradient-to-r from-primary to-blue-600 hover:from-primary-700 hover:to-blue-700 text-white font-heading font-bold text-sm shadow-md shadow-primary/30 hover:shadow-lg transition flex items-center justify-center gap-2 group">
+                <span>Masuk Sekarang</span>
+                <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+            </button>
+        </form>
+
+        <!-- Registrasi Link -->
+        <div class="mt-6 text-center text-xs text-slate-500 border-t border-slate-100 pt-5">
+            Belum punya akun siswa?
+            <a href="{{ url_for('register') }}" class="text-primary font-bold hover:underline ml-1">Daftar Akun Baru</a>
+        </div>
+
+        <!-- Interactive Quick Fill Demo Accounts -->
+        <div class="mt-6 pt-5 border-t border-slate-100">
+            <div class="flex items-center justify-between mb-2.5">
+                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Pilih Cepat Akun Demo:</span>
+                <span class="text-[10px] font-mono text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">Sandi: 123456</span>
+            </div>
+            
+            <div class="grid grid-cols-3 gap-2">
+                <button type="button" onclick="fillDemo('NIP001', '123456')" 
+                        class="px-2.5 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-200/80 text-amber-800 text-[11px] font-bold transition flex flex-col items-center gap-1 group">
+                    <i class="fa-solid fa-user-tie text-xs group-hover:scale-110 transition-transform"></i>
+                    <span>Pustakawan</span>
+                </button>
+
+                <button type="button" onclick="fillDemo('NIS101', '123456')" 
+                        class="px-2.5 py-2 rounded-xl bg-blue-50 hover:bg-blue-100 border border-blue-200/80 text-primary text-[11px] font-bold transition flex flex-col items-center gap-1 group">
+                    <i class="fa-solid fa-user-graduate text-xs group-hover:scale-110 transition-transform"></i>
+                    <span>Siswa</span>
+                </button>
+
+                <button type="button" onclick="fillDemo('NIP002', '123456')" 
+                        class="px-2.5 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 text-emerald-800 text-[11px] font-bold transition flex flex-col items-center gap-1 group">
+                    <i class="fa-solid fa-chalkboard-user text-xs group-hover:scale-110 transition-transform"></i>
+                    <span>Guru</span>
+                </button>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function togglePasswordVisibility() {
+        const pwd = document.getElementById('input-password');
+        const icon = document.getElementById('eye-icon');
+        if (pwd.type === 'password') {
+            pwd.type = 'text';
+            icon.classList.replace('fa-eye', 'fa-eye-slash');
+        } else {
+            pwd.type = 'password';
+            icon.classList.replace('fa-eye-slash', 'fa-eye');
+        }
+    }
+
+    function fillDemo(username, password) {
+        const userInput = document.getElementById('input-identitas');
+        const passInput = document.getElementById('input-password');
+        
+        userInput.value = username;
+        passInput.value = password;
+
+        // Visual flash effect on inputs
+        userInput.classList.add('ring-4', 'ring-primary/20', 'border-primary');
+        passInput.classList.add('ring-4', 'ring-primary/20', 'border-primary');
+
+        setTimeout(() => {
+            userInput.classList.remove('ring-4', 'ring-primary/20');
+            passInput.classList.remove('ring-4', 'ring-primary/20');
+        }, 500);
+    }
+</script>
+{% endblock %}

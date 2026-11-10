@@ -1,0 +1,527 @@
+{% extends "base.html" %}
+{% block title %}Katalog Buku & Koleksi — PerpusKu{% endblock %}
+
+{% block content %}
+<!-- ============================================== -->
+<!-- BANNER UTAMA HERO & BILAH PENCARIAN POWERFUL  -->
+<!-- ============================================== -->
+<div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-navy via-slate-900 to-blue-950 text-white p-6 sm:p-10 shadow-xl mb-10 border border-slate-800">
+    <!-- Decorative Ambient Glows -->
+    <div class="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-primary/20 blur-3xl pointer-events-none"></div>
+    <div class="absolute -bottom-24 -left-24 w-96 h-96 rounded-full bg-accent/15 blur-3xl pointer-events-none"></div>
+    
+    <div class="relative z-10 max-w-3xl">
+        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/10 border border-blue-400/20 text-blue-300 text-xs font-semibold mb-4 backdrop-blur-md">
+            <span class="w-2 h-2 rounded-full bg-blue-400 animate-ping"></span>
+            Katalog Digital Real-Time
+        </div>
+        <h1 class="font-heading text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight">
+            Eksplorasi Koleksi <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-sky-300 to-amber-300">Buku & Literatur</span> Sekolah
+        </h1>
+        <p class="text-slate-300 text-sm sm:text-base mt-3 leading-relaxed">
+            Cari buku pelajaran, fiksi, ensiklopedia, atau modul ajar dengan nomor rak presisi dan cek ketersediaan stok buku secara langsung.
+        </p>
+
+        <!-- Ringkasan Statistik Cepat di Hero -->
+        <div class="flex flex-wrap items-center gap-4 mt-6 pt-5 border-t border-slate-800/80 text-xs">
+            <div class="flex items-center gap-2 text-slate-300">
+                <i class="fa-solid fa-book-bookmark text-amber-400"></i>
+                <span><strong class="text-white">{{ buku_list|length }}</strong> Koleksi Tersedia</span>
+            </div>
+            <div class="w-1 h-1 rounded-full bg-slate-600 hidden sm:block"></div>
+            <div class="flex items-center gap-2 text-slate-300">
+                <i class="fa-solid fa-barcode text-blue-400"></i>
+                <span>Barcode Scanner Terintegrasi</span>
+            </div>
+            <div class="w-1 h-1 rounded-full bg-slate-600 hidden sm:block"></div>
+            <div class="flex items-center gap-2 text-slate-300">
+                <i class="fa-solid fa-bolt text-emerald-400"></i>
+                <span>Peminjaman Cepat & Instan</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form Pencarian dan Filter Tingkat Lanjut -->
+    <form method="GET" action="{{ url_for('katalog') }}" class="relative z-10 mt-8 bg-white/95 backdrop-blur-md p-3 sm:p-4 rounded-2xl shadow-xl flex flex-col lg:flex-row gap-3 text-navy border border-white/20">
+        <!-- Input Kata Kunci -->
+        <div class="flex-grow relative">
+            <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+            <input type="text" name="q" id="search-input" value="{{ cari }}"
+                   placeholder="Ketik judul buku, nama penulis, atau ISBN..."
+                   autocomplete="off"
+                   class="w-full pl-11 pr-10 py-3 rounded-xl border border-slate-200 focus:border-primary focus:ring-4 focus:ring-blue-100 outline-none text-sm transition font-medium">
+            {% if cari %}
+            <a href="{{ url_for('katalog') }}" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-sm">
+                <i class="fa-solid fa-circle-xmark"></i>
+            </a>
+            {% endif %}
+        </div>
+
+        <!-- Dropdown Kategori -->
+        <div class="lg:w-56 relative">
+            <i class="fa-solid fa-layer-group absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none"></i>
+            <select name="kategori" class="w-full pl-10 pr-8 py-3 rounded-xl border border-slate-200 focus:border-primary focus:ring-4 focus:ring-blue-100 outline-none text-sm bg-white font-medium appearance-none cursor-pointer transition">
+                <option value="">Semua Kategori</option>
+                {% for kat in kategori_list %}
+                    <option value="{{ kat.id }}" {% if kategori_aktif|string == kat.id|string %}selected{% endif %}>
+                        {{ kat.nama }}
+                    </option>
+                {% endfor %}
+            </select>
+            <i class="fa-solid fa-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none"></i>
+        </div>
+
+        <!-- Filter Checkbox: Hanya yang Tersedia -->
+        <label class="flex items-center gap-3 px-3 py-2 text-xs font-semibold text-slate-700 cursor-pointer select-none rounded-xl hover:bg-slate-50 transition">
+            <input type="checkbox" name="tersedia" value="1" {% if hanya_tersedia == '1' %}checked{% endif %}
+                   class="w-4 h-4 text-primary rounded-md border-slate-300 focus:ring-primary transition">
+            <span class="whitespace-nowrap">Stok Tersedia</span>
+        </label>
+
+        <!-- Tombol Submit Pencarian -->
+        <button type="submit" class="px-7 py-3 rounded-xl bg-gradient-to-r from-primary to-blue-600 hover:from-primary-700 hover:to-blue-700 text-white font-heading font-semibold text-sm shadow-md shadow-primary/30 transition flex items-center justify-center gap-2 group">
+            <i class="fa-solid fa-magnifying-glass group-hover:scale-110 transition-transform"></i>
+            <span>Cari Buku</span>
+        </button>
+    </form>
+
+    <!-- Chip Filter Cepat Kategori -->
+    <div class="relative z-10 flex flex-wrap items-center gap-2 mt-5">
+        <span class="text-xs font-semibold text-slate-400 mr-1 flex items-center gap-1.5">
+            <i class="fa-solid fa-tags text-[11px]"></i> Filter Cepat:
+        </span>
+        <a href="{{ url_for('katalog') }}"
+           class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all duration-200 {% if not kategori_aktif %}bg-accent text-navy shadow-sm shadow-accent/40 font-bold scale-105{% else %}bg-slate-800/90 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700{% endif %}">
+            Semua
+        </a>
+        {% for kat in kategori_list %}
+            <a href="{{ url_for('katalog', kategori=kat.id) }}"
+               class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all duration-200 {% if kategori_aktif|string == kat.id|string %}bg-accent text-navy shadow-sm shadow-accent/40 font-bold scale-105{% else %}bg-slate-800/90 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700{% endif %}">
+                {{ kat.nama }}
+            </a>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- ============================================== -->
+<!-- HEADER KONTEN & CONTROLS (SORT & VIEW TOGGLE)  -->
+<!-- ============================================== -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+    <div>
+        <h2 class="font-heading text-xl font-bold text-navy flex items-center gap-2.5">
+            <i class="fa-solid fa-book-bookmark text-primary"></i>
+            Koleksi Perpustakaan
+        </h2>
+        <p class="text-xs text-slate-500 mt-0.5" id="book-count-text">Menampilkan <strong>{{ buku_list|length }}</strong> judul buku siap pinjam</p>
+    </div>
+
+    <!-- Quick Sorting & View Mode Buttons -->
+    <div class="flex items-center gap-3">
+        <!-- Sort Control -->
+        <div class="relative">
+            <select id="sort-select" onchange="sortBooks(this.value)" class="text-xs font-semibold bg-white border border-slate-200 rounded-xl px-3 py-2 pr-8 text-slate-700 outline-none focus:border-primary shadow-xs cursor-pointer appearance-none">
+                <option value="default">Urutkan: Rekomendasi</option>
+                <option value="title-asc">Judul: A ke Z</option>
+                <option value="title-desc">Judul: Z ke A</option>
+                <option value="stock-desc">Stok Terbanyak</option>
+            </select>
+            <i class="fa-solid fa-arrow-down-short-wide absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none"></i>
+        </div>
+
+        <!-- Grid / List Switcher -->
+        <div class="flex items-center bg-white border border-slate-200 rounded-xl p-1 shadow-xs">
+            <button type="button" id="btn-view-grid" onclick="setViewMode('grid')" title="Tampilan Grid" 
+                    class="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-semibold bg-primary text-white transition">
+                <i class="fa-solid fa-grip"></i>
+            </button>
+            <button type="button" id="btn-view-list" onclick="setViewMode('list')" title="Tampilan List" 
+                    class="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-semibold text-slate-500 hover:text-slate-800 transition">
+                <i class="fa-solid fa-list-ul"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================== -->
+<!-- GRID / DAFTAR KARTU BUKU DENGAN ANIMASI HOVER -->
+<!-- ============================================== -->
+{% if buku_list %}
+<div id="books-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+    {% for buku in buku_list %}
+    <div class="book-card bg-white rounded-2xl border border-slate-200/90 shadow-soft interactive-card overflow-hidden flex flex-col group relative"
+         data-id="{{ buku.id }}"
+         data-title="{{ buku.judul|lower }}"
+         data-author="{{ buku.penulis|lower }}"
+         data-judul="{{ buku.judul|e }}"
+         data-penulis="{{ buku.penulis|e }}"
+         data-sampul="{{ buku.sampul }}"
+         data-kategori="{{ buku.nama_kategori or 'Umum' }}"
+         data-rak="{{ buku.lokasi_rak }}"
+         data-isbn="{{ buku.isbn }}"
+         data-sinopsis="{{ buku.sinopsis|e }}"
+         data-stock="{{ buku.stok_tersedia or 0 }}"
+         data-total="{{ buku.total_eksemplar or 0 }}">
+        
+        <!-- Sampul Buku & Badge Overlay -->
+        <div class="relative h-60 bg-gradient-to-t from-slate-900/60 to-transparent overflow-hidden">
+            <img src="{{ buku.sampul }}" alt="{{ buku.judul }}" 
+                 loading="lazy"
+                 onerror="this.src='https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&q=80'"
+                 class="w-full h-full object-cover group-hover:scale-108 transition-transform duration-500 ease-out">
+            
+            <div class="absolute inset-0 bg-gradient-to-t from-navy/80 via-transparent to-black/20 opacity-60 group-hover:opacity-40 transition-opacity"></div>
+            
+            <!-- Category Tag -->
+            <div class="absolute top-3 left-3 z-10">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-navy/85 backdrop-blur-md text-white text-[11px] font-semibold border border-white/10 shadow-sm">
+                    <i class="fa-solid fa-bookmark text-amber-400 text-[10px]"></i>
+                    {{ buku.nama_kategori or 'Umum' }}
+                </span>
+            </div>
+
+            <!-- Stock Availability Badge with Pulse -->
+            <div class="absolute top-3 right-3 z-10">
+                {% if buku.stok_tersedia and buku.stok_tersedia > 0 %}
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/95 backdrop-blur-md text-white text-[11px] font-bold shadow-md">
+                        <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+                        Tersedia ({{ buku.stok_tersedia }}/{{ buku.total_eksemplar }})
+                    </span>
+                {% else %}
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-500/95 backdrop-blur-md text-white text-[11px] font-bold shadow-md">
+                        <i class="fa-solid fa-clock text-[10px]"></i>
+                        Dipinjam Semua
+                    </span>
+                {% endif %}
+            </div>
+
+            <!-- Quick View Button Overlay -->
+            <button type="button" 
+                    onclick="openBookModalFromCard(this.closest('.book-card'))"
+                    class="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 px-3 py-1.5 rounded-xl bg-white/95 backdrop-blur-md text-navy hover:text-primary text-xs font-bold shadow-lg flex items-center gap-1.5 z-20">
+                <i class="fa-solid fa-eye text-primary"></i>
+                Detail
+            </button>
+        </div>
+
+        <!-- Detail Informasi Buku -->
+        <div class="p-5 flex-grow flex flex-col justify-between">
+            <div>
+                <h3 class="font-heading font-bold text-base text-navy line-clamp-1 group-hover:text-primary transition-colors cursor-pointer" 
+                    onclick="openBookModalFromCard(this.closest('.book-card'))"
+                    title="{{ buku.judul }}">
+                    {{ buku.judul }}
+                </h3>
+                <p class="text-xs font-semibold text-slate-500 mt-1 flex items-center gap-1.5">
+                    <i class="fa-solid fa-feather text-primary/70"></i>
+                    {{ buku.penulis }}
+                </p>
+                <p class="text-xs text-slate-500 mt-2.5 line-clamp-2 leading-relaxed">
+                    {{ buku.sinopsis or 'Tidak ada deskripsi singkat untuk buku ini.' }}
+                </p>
+            </div>
+
+            <div class="mt-4 pt-3.5 border-t border-slate-100">
+                <!-- Meta Lokasi Rak & ISBN -->
+                <div class="flex items-center justify-between text-[11px] text-slate-500 mb-3.5 bg-slate-50 px-2.5 py-1.5 rounded-lg border border-slate-100">
+                    <span class="flex items-center gap-1">
+                        <i class="fa-solid fa-location-dot text-amber-500"></i>
+                        Rak: <strong class="text-navy">{{ buku.lokasi_rak }}</strong>
+                    </span>
+                    <span class="font-mono text-[10px] text-slate-400">
+                        {{ buku.isbn }}
+                    </span>
+                </div>
+
+                <!-- Action Button -->
+                {% if buku.stok_tersedia and buku.stok_tersedia > 0 %}
+                    <div class="w-full py-2.5 px-3 rounded-xl bg-blue-50/80 border border-blue-100 text-primary text-center text-xs font-bold flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-circle-check text-emerald-500"></i>
+                        <span>Ambil di Rak {{ buku.lokasi_rak }}</span>
+                    </div>
+                {% else %}
+                    {% if session.get('user_id') and session.get('peran') in ['siswa', 'guru'] %}
+                        <form method="POST" action="{{ url_for('buat_reservasi', buku_id=buku.id) }}">
+                            <button type="submit" class="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-accent to-amber-500 hover:from-amber-500 hover:to-accent text-navy font-heading font-bold text-xs transition shadow-sm hover:shadow-md flex items-center justify-center gap-2 group">
+                                <i class="fa-solid fa-bell group-hover:rotate-12 transition-transform"></i>
+                                <span>Reservasi Antrean Buku</span>
+                            </button>
+                        </form>
+                    {% elif not session.get('user_id') %}
+                        <a href="{{ url_for('login') }}" class="block w-full py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-center text-xs font-bold transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-right-to-bracket"></i>
+                            <span>Masuk untuk Reservasi</span>
+                        </a>
+                    {% else %}
+                        <div class="w-full py-2.5 px-3 rounded-xl bg-slate-100 text-slate-400 text-center text-xs font-medium flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-ban"></i>
+                            <span>Stok Sedang Dipinjam</span>
+                        </div>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<!-- Tampilan Kosong (Empty State) Elegan -->
+<div class="bg-white rounded-3xl border border-slate-200 p-12 text-center max-w-lg mx-auto shadow-sm">
+    <div class="w-20 h-20 rounded-3xl bg-blue-50 text-primary flex items-center justify-center text-3xl mx-auto mb-4 animate-float">
+        <i class="fa-solid fa-book-open"></i>
+    </div>
+    <h3 class="font-heading text-lg font-bold text-navy">Buku Tidak Ditemukan</h3>
+    <p class="text-xs text-slate-500 mt-1.5 leading-relaxed">
+        Maaf, tidak ada buku yang cocok dengan kata kunci atau filter kategori yang Anda pilih saat ini.
+    </p>
+    <a href="{{ url_for('katalog') }}" class="inline-flex items-center gap-2 mt-5 px-5 py-2.5 rounded-xl bg-primary hover:bg-blue-700 text-white text-xs font-bold shadow-md shadow-primary/20 transition">
+        <i class="fa-solid fa-rotate-left"></i>
+        <span>Reset Filter & Pencarian</span>
+    </a>
+</div>
+{% endif %}
+
+<!-- ============================================== -->
+<!-- MODAL QUICK VIEW DETAIL BUKU                   -->
+<!-- ============================================== -->
+<div id="book-modal" class="fixed inset-0 z-50 hidden bg-navy/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-2xl w-full shadow-2xl overflow-hidden border border-slate-200 transform transition-all animate-slide-up flex flex-col md:flex-row max-h-[90vh]">
+        <!-- Cover Preview -->
+        <div class="md:w-5/12 bg-slate-100 relative h-64 md:h-auto overflow-hidden">
+            <img id="modal-img" src="" alt="Cover" class="w-full h-full object-cover">
+            <div class="absolute inset-0 bg-gradient-to-t from-navy/60 via-transparent to-transparent md:hidden"></div>
+            <div class="absolute top-4 left-4">
+                <span id="modal-cat" class="px-3 py-1 rounded-xl bg-navy/80 backdrop-blur-md text-white text-xs font-semibold"></span>
+            </div>
+        </div>
+
+        <!-- Book Information Details -->
+        <div class="p-6 md:w-7/12 flex flex-col justify-between overflow-y-auto">
+            <div>
+                <div class="flex items-start justify-between gap-3 mb-2">
+                    <h3 id="modal-title" class="font-heading font-extrabold text-xl text-navy leading-tight"></h3>
+                    <button type="button" onclick="closeBookModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-400 hover:text-navy hover:bg-slate-200 flex items-center justify-center transition flex-shrink-0">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                
+                <p id="modal-author" class="text-sm font-semibold text-primary mb-4 flex items-center gap-1.5"></p>
+
+                <!-- Specs Grid -->
+                <div class="grid grid-cols-2 gap-2 text-xs bg-softblue p-3.5 rounded-2xl mb-4 border border-blue-100">
+                    <div>
+                        <span class="text-slate-400 block text-[10px] uppercase font-bold">Lokasi Rak</span>
+                        <strong id="modal-rak" class="text-navy font-heading text-sm"></strong>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 block text-[10px] uppercase font-bold">ISBN</span>
+                        <span id="modal-isbn" class="font-mono text-slate-600 font-semibold"></span>
+                    </div>
+                    <div class="col-span-2 pt-2 border-t border-blue-200/50 flex items-center justify-between">
+                        <span class="text-slate-500 font-medium">Status Stok:</span>
+                        <span id="modal-stok-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold"></span>
+                    </div>
+                </div>
+
+                <!-- Synopsis -->
+                <div>
+                    <h4 class="font-heading font-bold text-xs text-navy mb-1.5 flex items-center gap-1.5">
+                        <i class="fa-solid fa-align-left text-slate-400"></i>
+                        Sinopsis Buku
+                    </h4>
+                    <p id="modal-synopsis" class="text-xs text-slate-600 leading-relaxed max-h-44 overflow-y-auto pr-1"></p>
+                </div>
+            </div>
+
+            <!-- Modal Action Footer -->
+            <div id="modal-action-box" class="pt-5 mt-5 border-t border-slate-100">
+                <!-- Will be dynamically filled based on user login state and stock -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Live Client-side search as user types
+    const searchInput = document.getElementById('search-input');
+    const bookCards = document.querySelectorAll('.book-card');
+    const bookCountText = document.getElementById('book-count-text');
+
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase().trim();
+            let visibleCount = 0;
+
+            bookCards.forEach(card => {
+                const title = card.getAttribute('data-title') || '';
+                const author = card.getAttribute('data-author') || '';
+
+                if (title.includes(query) || author.includes(query)) {
+                    card.style.display = 'flex';
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            if (bookCountText) {
+                bookCountText.innerHTML = `Menampilkan <strong>${visibleCount}</strong> judul buku cocok`;
+            }
+        });
+    }
+
+    // Grid vs List View toggle
+    function setViewMode(mode) {
+        const container = document.getElementById('books-container');
+        const btnGrid = document.getElementById('btn-view-grid');
+        const btnList = document.getElementById('btn-view-list');
+
+        if (!container) return;
+
+        if (mode === 'list') {
+            container.className = "flex flex-col gap-4";
+            btnList.className = "w-8 h-8 rounded-lg flex items-center justify-center text-xs font-semibold bg-primary text-white transition";
+            btnGrid.className = "w-8 h-8 rounded-lg flex items-center justify-center text-xs font-semibold text-slate-500 hover:text-slate-800 transition";
+            
+            document.querySelectorAll('.book-card').forEach(c => {
+                c.classList.add('sm:flex-row');
+                const imgWrap = c.querySelector('.relative.h-60');
+                if (imgWrap) {
+                    imgWrap.classList.remove('h-60');
+                    imgWrap.classList.add('sm:w-56', 'h-48', 'sm:h-auto', 'flex-shrink-0');
+                }
+            });
+        } else {
+            container.className = "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6";
+            btnGrid.className = "w-8 h-8 rounded-lg flex items-center justify-center text-xs font-semibold bg-primary text-white transition";
+            btnList.className = "w-8 h-8 rounded-lg flex items-center justify-center text-xs font-semibold text-slate-500 hover:text-slate-800 transition";
+            
+            document.querySelectorAll('.book-card').forEach(c => {
+                c.classList.remove('sm:flex-row');
+                const imgWrap = c.querySelector('.relative.sm\\:w-56');
+                if (imgWrap) {
+                    imgWrap.classList.remove('sm:w-56', 'h-48', 'sm:h-auto', 'flex-shrink-0');
+                    imgWrap.classList.add('h-60');
+                }
+            });
+        }
+    }
+
+    // Client-side Sort Function
+    function sortBooks(type) {
+        const container = document.getElementById('books-container');
+        if (!container) return;
+        const cards = Array.from(container.querySelectorAll('.book-card'));
+
+        cards.sort((a, b) => {
+            const titleA = a.getAttribute('data-title') || '';
+            const titleB = b.getAttribute('data-title') || '';
+            const stockA = parseInt(a.getAttribute('data-stock')) || 0;
+            const stockB = parseInt(b.getAttribute('data-stock')) || 0;
+
+            if (type === 'title-asc') return titleA.localeCompare(titleB);
+            if (type === 'title-desc') return titleB.localeCompare(titleA);
+            if (type === 'stock-desc') return stockB - stockA;
+            return 0; // default
+        });
+
+        cards.forEach(card => container.appendChild(card));
+    }
+
+    // Modal Quick View Logic
+    const bookModal = document.getElementById('book-modal');
+    const userLoggedIn = {{ 'true' if session.get('user_id') else 'false' }};
+    const userRole = "{{ session.get('peran') or '' }}";
+
+    function openBookModalFromCard(card) {
+        if (!bookModal || !card) return;
+
+        const book = {
+            id: card.getAttribute('data-id'),
+            judul: card.getAttribute('data-judul') || '',
+            penulis: card.getAttribute('data-penulis') || '',
+            sampul: card.getAttribute('data-sampul') || '',
+            nama_kategori: card.getAttribute('data-kategori') || 'Umum',
+            lokasi_rak: card.getAttribute('data-rak') || '-',
+            isbn: card.getAttribute('data-isbn') || '-',
+            sinopsis: card.getAttribute('data-sinopsis') || '',
+            stok_tersedia: parseInt(card.getAttribute('data-stock')) || 0,
+            total_eksemplar: parseInt(card.getAttribute('data-total')) || 0
+        };
+
+        document.getElementById('modal-img').src = book.sampul || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&q=80';
+        document.getElementById('modal-cat').textContent = book.nama_kategori || 'Umum';
+        document.getElementById('modal-title').textContent = book.judul;
+        document.getElementById('modal-author').innerHTML = `<i class="fa-solid fa-feather"></i> Ditulis oleh ${book.penulis}`;
+        document.getElementById('modal-rak').textContent = book.lokasi_rak;
+        document.getElementById('modal-isbn').textContent = book.isbn || '-';
+        document.getElementById('modal-synopsis').textContent = book.sinopsis || 'Tidak ada deskripsi singkat untuk buku ini.';
+
+        const stokBadge = document.getElementById('modal-stok-badge');
+        const actionBox = document.getElementById('modal-action-box');
+        const stockAvailable = book.stok_tersedia;
+        const total = book.total_eksemplar;
+
+        if (stockAvailable > 0) {
+            stokBadge.className = "px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800";
+            stokBadge.textContent = `Tersedia (${stockAvailable}/${total} Eksemplar)`;
+
+            actionBox.innerHTML = `
+                <div class="bg-blue-50 text-primary p-3 rounded-2xl text-xs font-bold text-center border border-blue-200">
+                    <i class="fa-solid fa-circle-check text-emerald-600 mr-1.5"></i>
+                    Buku siap dipinjam langsung di Meja Pustakawan (Rak ${book.lokasi_rak})
+                </div>
+            `;
+        } else {
+            stokBadge.className = "px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-100 text-rose-800";
+            stokBadge.textContent = `Semua Dipinjam (0/${total} Eksemplar)`;
+
+            if (userLoggedIn && (userRole === 'siswa' || userRole === 'guru')) {
+                actionBox.innerHTML = `
+                    <form method="POST" action="/reservasi/${book.id}">
+                        <button type="submit" class="w-full py-3 rounded-2xl bg-gradient-to-r from-accent to-amber-500 hover:from-amber-500 hover:to-accent text-navy font-heading font-bold text-xs transition shadow-md flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-bell"></i>
+                            Reservasi Antrean Buku Ini
+                        </button>
+                    </form>
+                `;
+            } else if (!userLoggedIn) {
+                actionBox.innerHTML = `
+                    <a href="/login" class="block w-full py-3 rounded-2xl bg-primary hover:bg-blue-700 text-white font-heading font-bold text-xs text-center transition shadow-md">
+                        Masuk Akun untuk Reservasi
+                    </a>
+                `;
+            } else {
+                actionBox.innerHTML = `
+                    <div class="bg-slate-100 text-slate-500 p-3 rounded-2xl text-xs font-semibold text-center">
+                        Seluruh stok eksemplar sedang dalam masa peminjaman
+                    </div>
+                `;
+            }
+        }
+
+        bookModal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeBookModal() {
+        if (!bookModal) return;
+        bookModal.classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+
+    // Close modal on escape key or backdrop click
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !bookModal.classList.contains('hidden')) {
+            closeBookModal();
+        }
+    });
+
+    bookModal.addEventListener('click', (e) => {
+        if (e.target === bookModal) {
+            closeBookModal();
+        }
+    });
+</script>
+{% endblock %}
